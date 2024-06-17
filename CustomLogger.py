@@ -39,6 +39,48 @@ class CustomLogger:
     # 使用示例
 
 
+import logging
+import threading
+
+
+class CustomLoggerSingleton:
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls, log_file=None):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    # 初始化日志系统
+                    cls._logger = logging.getLogger('my_app')
+                    cls._logger.setLevel(logging.DEBUG)
+
+                    # 创建文件处理器
+                    if log_file:
+                        fh = logging.FileHandler(log_file)
+                        fh.setLevel(logging.DEBUG)
+
+                        # 创建控制台处理器
+                        ch = logging.StreamHandler()
+                        ch.setLevel(logging.DEBUG)
+
+                        # 定义处理器输出格式
+                        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                        fh.setFormatter(formatter)
+                        ch.setFormatter(formatter)
+
+                        # 给logger添加处理器
+                        cls._logger.addHandler(fh)
+                        cls._logger.addHandler(ch)
+        return cls._instance
+
+    @classmethod
+    def get_logger(cls):
+        return cls._logger
+
+
+
 if __name__ == '__main__':
     log_file_path = 'my_log.log'
     log_level = logging.DEBUG  # 可以设置不同的日志级别，如 logging.INFO, logging.WARNING 等

@@ -1,4 +1,5 @@
 # Copyright 2020 by Andrey Ignatov. All Rights Reserved.
+import os
 
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -15,6 +16,22 @@ from msssim import MSSSIM
 from model import PyNET
 from vgg import vgg_19
 from utils import normalize_batch, process_command_args
+
+import logging
+from CustomLogger import CustomLogger
+from datetime import datetime
+
+# 获取当前时间并格式化为字符串
+current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+os.makedirs('logs',exist_ok=True)
+
+log_file_path = os.path.join('logs',f'train_model_{current_time}.log')
+log_level = logging.DEBUG  # 可以设置不同的日志级别，如 logging.INFO, logging.WARNING 等
+
+custom_logger = CustomLogger(log_file_path, log_level)
+logger = custom_logger.get_logger()
+
 
 to_image = transforms.Compose([transforms.ToPILImage()])
 
@@ -47,12 +64,12 @@ def train_model():
             torch.backends.cudnn.deterministic = True
             device = torch.device("cuda")
 
-            print("CUDA visible devices:", torch.cuda.device_count())
-            print("CUDA Device Name:", torch.cuda.get_device_name(0))  # 注意这里我们传入的是设备索引，通常是 0
+            logger.info("CUDA visible devices:", torch.cuda.device_count())
+            logger.info("CUDA Device Name:", torch.cuda.get_device_name(0))  # 注意这里我们传入的是设备索引，通常是 0
         else:
             # 如果 CUDA 也不可用，则使用 CPU
             device = torch.device("cpu")
-            print("Running on CPU")
+            logger.info("Running on CPU")
 
             # 接下来的代码可以使用 `device` 变量进行运算
 
@@ -104,8 +121,8 @@ def train_model():
 
             x = x.to(device, non_blocking=True)
             y = y.to(device, non_blocking=True).float()
-            # print(f'x.dtype = {x.dtype}')
-            # print(f'y.dtype = {y.dtype}')
+            # logger.info(f'x.dtype = {x.dtype}')
+            # logger.info(f'y.dtype = {y.dtype}')
 
             enhanced = generator(x)
 
@@ -133,7 +150,7 @@ def train_model():
 
             # Perform the optimization step
 
-            # print(f'total_loss.dtype = {total_loss.dtype}')
+            # logger.info(f'total_loss.dtype = {total_loss.dtype}')
             total_loss.backward()
             optimizer.step()
 
@@ -202,13 +219,13 @@ def train_model():
                 loss_ssim_eval = loss_ssim_eval / TEST_SIZE
 
                 if level < 2:
-                    print("Epoch %d, mse: %.4f, psnr: %.4f, vgg: %.4f, ms-ssim: %.4f" % (epoch,
+                    logger.info("Epoch %d, mse: %.4f, psnr: %.4f, vgg: %.4f, ms-ssim: %.4f" % (epoch,
                             loss_mse_eval, loss_psnr_eval, loss_vgg_eval, loss_ssim_eval))
                 elif level < 5:
-                    print("Epoch %d, mse: %.4f, psnr: %.4f, vgg: %.4f" % (epoch,
+                    logger.info("Epoch %d, mse: %.4f, psnr: %.4f, vgg: %.4f" % (epoch,
                             loss_mse_eval, loss_psnr_eval, loss_vgg_eval))
                 else:
-                    print("Epoch %d, mse: %.4f, psnr: %.4f" % (epoch, loss_mse_eval, loss_psnr_eval))
+                    logger.info("Epoch %d, mse: %.4f, psnr: %.4f" % (epoch, loss_mse_eval, loss_psnr_eval))
 
                 generator.train()
 
