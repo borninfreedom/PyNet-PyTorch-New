@@ -41,6 +41,15 @@ torch.manual_seed(0)
 # Processing command arguments
 
 level, batch_size, learning_rate, restore_epoch, num_train_epochs, dataset_dir = process_command_args(sys.argv)
+logger.info("The following parameters will be applied for CNN training:")
+
+logger.info("Training level: " + str(level))
+logger.info("Batch size: " + str(batch_size))
+logger.info("Learning rate: " + str(learning_rate))
+logger.info("Training epochs: " + str(num_train_epochs))
+logger.info("Restore epoch: " + str(restore_epoch))
+logger.info("Path to the dataset: " + dataset_dir)
+
 dslr_scale = float(1) / (2 ** (level - 1))
 
 # Dataset size

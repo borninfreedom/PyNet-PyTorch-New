@@ -53,7 +53,7 @@ class CustomLoggerSingleton:
                 if cls._instance is None:
                     cls._instance = super().__new__(cls)
                     # 初始化日志系统
-                    cls._logger = logging.getLogger('my_app')
+                    cls._logger = logging.getLogger('PyNet-PyTorch')
                     cls._logger.setLevel(logging.DEBUG)
 
                     # 创建文件处理器

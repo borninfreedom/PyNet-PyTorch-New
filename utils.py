@@ -51,14 +51,6 @@ def process_command_args(arguments):
     if num_train_epochs is None:
         num_train_epochs = NUM_DEFAULT_TRAIN_EPOCHS[level]
 
-    print("The following parameters will be applied for CNN training:")
-
-    print("Training level: " + str(level))
-    print("Batch size: " + str(batch_size))
-    print("Learning rate: " + str(learning_rate))
-    print("Training epochs: " + str(num_train_epochs))
-    print("Restore epoch: " + str(restore_epoch))
-    print("Path to the dataset: " + dataset_dir)
 
     return level, batch_size, learning_rate, restore_epoch, num_train_epochs, dataset_dir
 
