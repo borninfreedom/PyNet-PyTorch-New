@@ -21,6 +21,17 @@ import logging
 from CustomLogger import CustomLogger
 from datetime import datetime
 
+import pynvml
+pynvml.nvmlInit()
+handle = pynvml.nvmlDeviceGetHandleByIndex(0) # 0表示显卡标号
+meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
+
+def get_gpu_memory_usage(meminfo_handle):
+    return meminfo_handle.used/1024**2
+    # print(meminfo.total/1024**2) #总的显存大小
+    # print()  #已用显存大小
+    # print(meminfo.free/1024**2)  #剩余显存大小
+
 # 获取当前时间并格式化为字符串
 current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -60,27 +71,17 @@ TEST_SIZE = 1204
 
 def train_model():
 
-    try:
-        # 尝试访问 MPS 后端
-        if torch.backends.mps.is_available():
-            device = torch.device('mps')
-        else:
-            raise ValueError("MPS is not available on this system.")
-    except AttributeError:
-        # 如果 MPS 后端不存在，则进入此异常处理块
-        # 尝试使用 CUDA
-        if torch.cuda.is_available():
-            torch.backends.cudnn.deterministic = True
-            device = torch.device("cuda")
+    # 尝试使用 CUDA
+    if torch.cuda.is_available():
+        torch.backends.cudnn.deterministic = True
+        device = torch.device("cuda")
 
-            logger.info("CUDA visible devices:", torch.cuda.device_count())
-            logger.info("CUDA Device Name:", torch.cuda.get_device_name(0))  # 注意这里我们传入的是设备索引，通常是 0
-        else:
-            # 如果 CUDA 也不可用，则使用 CPU
-            device = torch.device("cpu")
-            logger.info("Running on CPU")
-
-            # 接下来的代码可以使用 `device` 变量进行运算
+        logger.info(f"CUDA visible devices: {torch.cuda.device_count()}")
+        logger.info(f"CUDA Device Name: {torch.cuda.get_device_name(0)}")  # 注意这里我们传入的是设备索引，通常是 0
+    else:
+        # 如果 CUDA 也不可用，则使用 CPU
+        device = torch.device("cpu")
+        logger.info("Running on CPU")
 
 
     # Creating dataset loaders
@@ -124,6 +125,8 @@ def train_model():
 
         train_iter = iter(train_loader)
         for i in range(len(train_loader)):
+            if i%50==0:
+                logger.info(f'gpu usage: {get_gpu_memory_usage(meminfo)}')
 
             optimizer.zero_grad()
             x, y = next(train_iter)
